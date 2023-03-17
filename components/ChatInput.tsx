@@ -4,6 +4,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import email from "next-auth/providers/email";
 import { useSession } from "next-auth/react";
 import { FormEvent, useState } from "react";
+import toast from "react-hot-toast";
 import { db } from "../firebase";
 
 type Props = {
@@ -38,7 +39,11 @@ function ChatInput({ chatId }: Props) {
         await addDoc(
             collection(db, 'users', session?.user?.email!, 'chats', chatId, 'messages'),
             message
-        )
+        );
+
+        //toast notification says loading!
+
+        const notification = toast.loading('ChatGPT is thinking...');
 
         await fetch("/api/askQuestion", {
             method: "POST",
@@ -50,7 +55,11 @@ function ChatInput({ chatId }: Props) {
             }),
         }).then(() => {
             //Toast notification to say thanks
-        })
+            toast.success('ChatGPT has responded!', {
+                id: notification,
+
+            });
+        });
 
 
     };
