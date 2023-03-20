@@ -3,6 +3,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import query from '../../lib/queryApi';
 import admin from "firebase-admin";
+import { adminDb } from '../../firebaseAdmin';
 
 type Data = {
     answer: string
@@ -29,8 +30,22 @@ export default async function handler(
 
     const message: Message = {
         text: response || "ChatGPT was unable to find an answer for that!",
+        createdAt: admin.firestore.Timestamp.now(),
+        user: {
+            _id: 'ChatGPT',
+            name: 'ChatGPT',
+            avatar: "https://link.papareact.com/89k"
+        },
 
-    }
+    };
 
-    res.status(200).json({ name: 'John Doe' })
+    await adminDb
+        .collection("users")
+        .doc(session?.user?.email)
+        .collection("chats")
+        .doc(chatId)
+        .collection("messages")
+        .add(message);
+
+    res.status(200).json({ answer: message.text })
 }
